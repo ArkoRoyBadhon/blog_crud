@@ -57,11 +57,43 @@ export const createArticleController = catchAsyncError(
   }
 );
 
+
 export const getAllArticleController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const result = await article
-        .find()
+      const { tags, categories, author, dateFrom, dateTo, searchText } = req.query;
+      let filter: any = {};
+
+      if (tags) {
+        filter.tags = { $in: Array.isArray(tags) ? tags : (tags as string).split(',') };
+      }
+
+      if (categories) {
+        filter.categories = { $in: Array.isArray(categories) ? categories : (categories as string).split(',') };
+      }
+
+      if (author) {
+        filter.author = author;
+      }
+
+      if (dateFrom || dateTo) {
+        filter.date = {};
+        if (dateFrom) {
+          filter.date.$gte = new Date(dateFrom as string);
+        }
+        if (dateTo) {
+          filter.date.$lte = new Date(dateTo as string);
+        }
+      }
+
+      if (searchText) {
+        filter.$or = [
+          { title: { $regex: searchText, $options: 'i' } },
+          { text: { $regex: searchText, $options: 'i' } },
+        ];
+      }
+
+      const result = await article.find(filter)
         .populate("tags")
         .populate("categories")
         .populate("comments")
@@ -69,19 +101,20 @@ export const getAllArticleController = catchAsyncError(
 
       return res.status(200).json({
         success: true,
-        msg: "Article fetched successfully.",
+        msg: "Articles fetched successfully.",
         result,
       });
     } catch (error) {
       console.error(error);
       return res.status(500).json({
         success: false,
-        msg: "Error Fetching article",
+        msg: "Error fetching articles",
         error,
       });
     }
   }
 );
+
 
 export const getArticleByIdController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
