@@ -1,16 +1,16 @@
+import bcrypt from "bcrypt";
 import { NextFunction, Request, Response } from "express";
-import catchAsyncError from "../middlewares/catchAsyncErrors";
 import { validationResult } from "express-validator";
+import catchAsyncError from "../middlewares/catchAsyncErrors";
 import People from "../models/people.model"; // i use this as User also
+import RefreshToken from "../models/refreshToken.model";
 import ErrorHandler from "../utils/errorhandler";
 import { createAcessToken, createRefreshToken } from "../utils/jwtToken";
-import RefreshToken from "../models/refreshToken.model";
-import bcrypt from "bcrypt";
-
 
 export const registerUserController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { email, name, password, home_phone, work_phone, role } = req.body;
+    const { email, name, password, home_phone, work_phone } = req.body;
+    console.log(req.body);
 
     const errors = validationResult(req);
 
@@ -142,7 +142,6 @@ export const signinController = async (
 //     }
 //   }
 // );
-
 
 // export const getAllPeople = catchAsyncError(
 //   async (req: Request, res: Response, next: NextFunction) => {
