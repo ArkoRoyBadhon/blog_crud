@@ -62,7 +62,7 @@ export const registerUserController = catchAsyncError(
       message: "Account created successfully",
       accessToken,
       refreshToken,
-      user: userResponse,
+      data: userResponse,
     });
   }
 );
@@ -81,7 +81,7 @@ export const signinController = async (
     }
     const user = await People.findOne({ email });
     if (!user) {
-      return res.status(404).json({
+      return res.json({
         success: false,
         message: "email is not registered",
         notFound: true,
@@ -90,7 +90,7 @@ export const signinController = async (
     }
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
-      return res.status(401).json({
+      return res.json({
         success: false,
         message: "email is not registered",
         notMatched: true,
@@ -100,7 +100,6 @@ export const signinController = async (
     const tokenPayload = {
       email: user.email,
       userId: user._id,
-
       role: user.role,
     };
 
@@ -120,7 +119,7 @@ export const signinController = async (
     return res.json({
       success: true,
       message: "Signin success",
-      user: userResponse,
+      data: userResponse,
       accessToken,
       refreshToken,
     });
