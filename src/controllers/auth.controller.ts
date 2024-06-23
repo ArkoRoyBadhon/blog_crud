@@ -20,7 +20,12 @@ export const registerUserController = catchAsyncError(
 
     const existingEmail = await People.findOne({ email });
     if (existingEmail) {
-      throw new ErrorHandler("This email is already used!", 400);
+      return res.json({
+        success: true,
+        duplicate: true,
+        message: "email already in used",
+        data: null,
+      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -30,7 +35,7 @@ export const registerUserController = catchAsyncError(
       name,
       password: hashedPassword,
       home_phone,
-      work_phone
+      work_phone,
     });
 
     const tokenPayload = {
@@ -76,11 +81,21 @@ export const signinController = async (
     }
     const user = await People.findOne({ email });
     if (!user) {
-      throw new ErrorHandler("Email is not registered", 400);
+      return res.status(404).json({
+        success: false,
+        message: "email is not registered",
+        notFound: true,
+        data: null,
+      });
     }
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) {
-      throw new ErrorHandler("Password is not match", 400);
+      return res.status(401).json({
+        success: false,
+        message: "email is not registered",
+        notMatched: true,
+        data: null,
+      });
     }
     const tokenPayload = {
       email: user.email,
@@ -113,7 +128,6 @@ export const signinController = async (
     next(error);
   }
 };
-
 
 // export const CreatePeopleController = catchAsyncError(
 //   async (req: Request, res: Response, next: NextFunction) => {

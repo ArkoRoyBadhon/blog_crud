@@ -113,7 +113,7 @@ export const getAllArticleController = catchAsyncError(
         .populate("author");
 
       if (mostVisited) {
-        query = query.sort({ visit: -1 });
+        query = query.sort({ visit: -1 }).limit(5);
       }
 
       const result = await query;
