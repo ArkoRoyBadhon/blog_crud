@@ -1,11 +1,13 @@
 import bcrypt from "bcrypt";
 import { NextFunction, Request, Response } from "express";
 import { validationResult } from "express-validator";
+import jwt from "jsonwebtoken";
 import catchAsyncError from "../middlewares/catchAsyncErrors";
 import People from "../models/people.model"; // i use this as User also
 import RefreshToken from "../models/refreshToken.model";
 import ErrorHandler from "../utils/errorhandler";
 import { createAcessToken, createRefreshToken } from "../utils/jwtToken";
+import sendMessage from "../utils/sendMessage";
 
 export const registerUserController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -84,7 +86,7 @@ export const signinController = async (
       return res.json({
         success: false,
         message: "email is not registered",
-        notFound: true,
+        // notFound: true,
         data: null,
       });
     }
@@ -92,8 +94,8 @@ export const signinController = async (
     if (!isPasswordCorrect) {
       return res.json({
         success: false,
-        message: "email is not registered",
-        notMatched: true,
+        message: "Invalid password",
+        // notMatched: true,
         data: null,
       });
     }
@@ -127,6 +129,232 @@ export const signinController = async (
     next(error);
   }
 };
+
+export const authSateController = catchAsyncError(async (req, res) => {
+  const user = req.user;
+  res.json({ success: true, message: "User state get", data: user });
+});
+
+export const getAccessToken = async (req: Request, res: Response) => {
+  const token = req.headers["authorization"]?.split(" ")[1]; /// refresh token
+  if (!token) return res.sendStatus(401);
+
+  // asdfasfd. decode
+
+  const refreshSecret = process.env.JWT_REFRESH_SECRET as string;
+  try {
+    const refreshToken = await RefreshToken.findOne({
+      token,
+    });
+    if (!refreshToken) {
+      return res.status(401).json({ success: false, message: "Unauthotized" });
+    }
+    const today = new Date().getTime();
+
+    if (today > refreshToken.expiration_time) {
+      return res.status(401).json({ success: false, message: "Unauthotized" });
+    }
+
+    const decoded: any = jwt.verify(
+      refreshToken.token as string,
+      refreshSecret as string
+    );
+
+    const tokenUser = decoded.user;
+
+    // checking if the user is exist
+    const user = await People.findOne({ email: tokenUser.email });
+
+    if (!user) {
+      throw new ErrorHandler("This user is not found !", 404);
+    }
+
+    const jwtPayload = {
+      userId: user.id,
+      role: user.role,
+    };
+
+    const accessToken = createAcessToken(jwtPayload, "1h");
+    res.json({
+      success: true,
+      data: null,
+      message: "access token retive successfully",
+      token: accessToken,
+    });
+  } catch (error) {
+    res.status(401).json({ success: false, message: "unautorized access" });
+  }
+};
+
+// change password
+export const resetPassword = catchAsyncError(async (req: any, res, next) => {
+  const { newPassword, oldPassword } = req.body;
+
+  const user = req.user;
+
+  if (!newPassword || !oldPassword) {
+    return res.json({
+      success: false,
+      data: null,
+      message: "password, oldPassword and email => is required",
+    });
+  }
+  console.log(user);
+
+  const theUser = await People.findOne({ email: user?.email });
+
+  // check if there no user
+  if (!theUser) {
+    return res.json({
+      success: false,
+      data: null,
+      message: `no account found`,
+    });
+  }
+
+  // varify old password
+  const isOk = await bcrypt.compare(oldPassword, theUser.password as string);
+  if (!isOk) {
+    return res.json({ message: "Wrong password", success: false });
+  }
+
+  // create new hash password
+  const newPass = await bcrypt.hash(newPassword, 15);
+
+  // update the new
+  const updatePassword = await People.findOneAndUpdate(
+    { email: theUser.email },
+    {
+      $set: {
+        password: newPass,
+      },
+    }
+  );
+
+  res.json({
+    message: "password Updated",
+    success: true,
+    user: { ...updatePassword?.toObject(), password: "****" },
+  });
+});
+
+// forgot-password controller
+export const forgotPassword = catchAsyncError(async (req, res) => {
+  const { email } = req.body;
+
+  const user = await People.findOne({ email });
+
+  if (!user) {
+    return res
+      .status(400)
+      .json({ success: false, message: "No user found with this email!" });
+  }
+
+  const tokenPayload = {
+    email: user.email,
+    _id: user._id,
+  };
+
+  const token = jwt.sign(
+    tokenPayload,
+    process.env.JWT_ACCESS_SECRET as string,
+    {
+      expiresIn: "5m",
+    }
+  );
+  console.log(
+    `${process.env.FRONTEND_BASE_URL}/recover-password?token=${token}`
+  );
+
+  sendMessage(
+    "legendxpro123455@gmail.com",
+    email,
+    "Reset your password - Fresh Blogs",
+
+    `<div style="font-family: Arial, sans-serif; background-color: #f9f9f9; color: #333; margin: 0; padding: 0;">
+      <div style="width: 100%; max-width: 600px; margin: 0 auto; background-color: #fff; padding: 20px; border: 1px solid #ddd;">
+          <div style="text-align: center; background-color: #00466a; color: white; padding: 10px;">
+              <h1 style="margin: 0;">Password Reset</h1>
+          </div>
+          <div style="padding: 20px;">
+              <p>Hello,${user?.name || ""}</p>
+              <p>We received a request to reset your password. Click the button below to reset it.</p>
+              <div style="text-align: center; margin: 20px 0;">
+                  <a href="${
+                    process.env.FRONTEND_BASE_URL
+                  }/recover-password?token=${token}" style="display: inline-block; padding: 10px 20px; background-color: #00466a; color: white; text-decoration: none; border-radius: 5px;">Reset Password</a>
+              </div>
+              <p>If you did not request a password reset, please ignore this email.</p>
+              <p>Thanks,</p>
+              <p>Fresh Blogs</p>
+          </div>
+          <div style="text-align: center; background-color: #f1f1f1; color: #555; padding: 10px;">
+              <p style="margin: 0;">&copy; 2024 Fresh Blogs. All rights reserved.</p>
+          </div>
+      </div>
+  </div>`
+  );
+
+  res.status(200).json({
+    success: true,
+    message: "Check your email to recover the password",
+  });
+});
+
+// Resetting new password
+export const recoverPassword = catchAsyncError(async (req, res) => {
+  const { password } = req.body;
+  const token = req.header("Authorization");
+  if (!token || !password) {
+    return res.status(400).json({ error: "Token and password are required" });
+  }
+
+  const decoded: any = jwt.verify(
+    token,
+    process.env.JWT_ACCESS_SECRET as string
+  );
+  if (!decoded)
+    return res
+      .status(401)
+      .json({ success: false, message: "Invalid Authentication." });
+
+  const user = await People.findOne({
+    email: decoded.email,
+  });
+
+  if (!user) {
+    return res.status(400).json({
+      success: false,
+      data: null,
+      message: "User not found",
+    });
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  user.password = hashedPassword;
+  const tokenPayload = {
+    email: user.email,
+    userId: user._id,
+    role: user.role,
+  };
+
+  const accessToken = createAcessToken(tokenPayload, "1h");
+  const refreshToken = createRefreshToken(tokenPayload);
+
+  await user.save();
+  await RefreshToken.findOneAndUpdate(
+    { userId: user._id },
+    { $set: { token: refreshToken } }
+  );
+
+  res.status(200).json({
+    success: true,
+    message: "Password has been successfully reset",
+    refreshToken,
+    accessToken,
+  });
+});
 
 // export const CreatePeopleController = catchAsyncError(
 //   async (req: Request, res: Response, next: NextFunction) => {

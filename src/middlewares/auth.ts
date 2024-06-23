@@ -10,19 +10,16 @@ export const isAuthenticatedUser = async (
 ) => {
   try {
     const getToken = req.header("Authorization");
-    console.log("token =====", getToken);
 
     if (!getToken)
       return res.status(400).json({ msg: "Invalid Authentication." });
 
     const token = getToken.split(" ")[1];
+    console.log(token);
     const decoded: any = jwt.verify(
       token,
       process.env.JWT_ACCESS_SECRET as string
     );
-
-    console.log("=========", decoded);
-    
 
     if (!decoded)
       return res.status(400).json({ msg: "Invalid Authentication." });
@@ -32,12 +29,12 @@ export const isAuthenticatedUser = async (
     );
     if (!user) return res.status(400).json({ msg: "User does not exist." });
 
-    console.log("user =======", user);
-
     req.user = user;
 
     next();
   } catch (err: any) {
+    console.log(err);
+
     return res.status(500).json({ msg: err.message });
   }
 };

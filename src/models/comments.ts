@@ -4,11 +4,11 @@ const commentSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: false,
     },
     URL: {
       type: String,
-      required: true,
+      required: false,
     },
     text: {
       type: String,
