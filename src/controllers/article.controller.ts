@@ -17,7 +17,6 @@ export const createArticleController = catchAsyncError(
         });
       } else {
         const data = req.body;
-        console.log("dta", data);
 
         const result = await Article.create(data);
 
