@@ -84,7 +84,7 @@ export const signinController = async (
       return res.json({
         success: false,
         message: "email is not registered",
-        notFound: true,
+        // notFound: true,
         data: null,
       });
     }
@@ -92,8 +92,8 @@ export const signinController = async (
     if (!isPasswordCorrect) {
       return res.json({
         success: false,
-        message: "email is not registered",
-        notMatched: true,
+        message: "Invalid password",
+        // notMatched: true,
         data: null,
       });
     }
@@ -127,6 +127,57 @@ export const signinController = async (
     next(error);
   }
 };
+
+export const resetPassword = catchAsyncError(async (req: any, res, next) => {
+  const { newPassword, oldPassword } = req.body;
+
+  const user = req.user;
+
+  if (!newPassword || !oldPassword) {
+    return res.json({
+      success: false,
+      data: null,
+      message: "password, oldPassword and email => is required",
+    });
+  }
+  console.log(user);
+
+  const theUser = await People.findOne({ email: user?.email });
+
+  // check if there no user
+  if (!theUser) {
+    return res.json({
+      success: false,
+      data: null,
+      message: `no account found`,
+    });
+  }
+
+  // varify old password
+  const isOk = await bcrypt.compare(oldPassword, theUser.password as string);
+  if (!isOk) {
+    return res.json({ message: "Wrong password", success: false });
+  }
+
+  // create new hash password
+  const newPass = await bcrypt.hash(newPassword, 15);
+
+  // update the new
+  const updatePassword = await People.findOneAndUpdate(
+    { email: theUser.email },
+    {
+      $set: {
+        password: newPass,
+      },
+    }
+  );
+
+  res.json({
+    message: "password Updated",
+    success: true,
+    user: { ...updatePassword?.toObject(), password: "****" },
+  });
+});
 
 // export const CreatePeopleController = catchAsyncError(
 //   async (req: Request, res: Response, next: NextFunction) => {
