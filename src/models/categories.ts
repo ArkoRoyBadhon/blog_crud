@@ -8,12 +8,13 @@ const categorySchema = new mongoose.Schema(
     },
     URL: {
       type: String,
-      required: true,
+      required: false,
     },
     articles: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Article",
+        default: "",
       },
     ],
   },
