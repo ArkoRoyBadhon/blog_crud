@@ -1,5 +1,5 @@
 import express from "express";
-import { CreatePeopleController, getAllPeople } from "../../controllers/people.controller";
+import { CreatePeopleController, getAllPeople } from "../../controllers/auth.controller";
 import { validatePeople } from "../../helpers/validPeople";
 const router = express.Router();
 
