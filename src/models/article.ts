@@ -14,6 +14,11 @@ const articleSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
+    visit: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
     tags: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -35,8 +40,8 @@ const articleSchema = new mongoose.Schema(
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "People",
-      required: true
-    }
+      required: true,
+    },
   },
   {
     timestamps: true,
