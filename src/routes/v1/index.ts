@@ -7,7 +7,7 @@ import tag from "./tag.route";
 import category from "./category.route";
 import comment from "./comment.route";
 
-router.use("/author", people);
+router.use("/user", people);
 router.use("/article", article);
 router.use("/tag", tag);
 router.use("/category", category);
