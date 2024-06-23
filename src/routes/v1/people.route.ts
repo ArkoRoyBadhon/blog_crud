@@ -1,6 +1,8 @@
 import express from "express";
 // import { CreatePeopleController, getAllPeople } from "../../controllers/auth.controller";
 import {
+  forgotPassword,
+  recoverPassword,
   registerUserController,
   resetPassword,
   signinController,
@@ -13,6 +15,8 @@ const router = express.Router();
 router.post("/register", registerUserController);
 router.post("/login", signinController);
 router.post("/reset-password", isAuthenticatedUser, resetPassword);
+router.post("/forgot-password", forgotPassword);
+router.post("/recover-password", recoverPassword);
 // router.get("/all/get", getAllPeople);
 
 export default router;
