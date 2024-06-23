@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
-import { validationResult } from "express-validator";
 import catchAsyncError from "../middlewares/catchAsyncErrors";
-import Article from "../models/article";
-import Category from "../models/categories";
+import { validationResult } from "express-validator";
+import article from "../models/article";
 import Tag from "../models/tags";
+import Category from "../models/categories";
 
 export const createArticleController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -19,7 +19,7 @@ export const createArticleController = catchAsyncError(
         const data = req.body;
         console.log("dta", data);
 
-        const result = await Article.create(data);
+        const result = await article.create(data);
 
         // console.log("dta", result);
         if (!result) {
@@ -57,32 +57,19 @@ export const createArticleController = catchAsyncError(
   }
 );
 
+
 export const getAllArticleController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const {
-        tags,
-        categories,
-        author,
-        dateFrom,
-        dateTo,
-        searchText,
-        mostVisited,
-      } = req.query;
+      const { tags, categories, author, dateFrom, dateTo, searchText } = req.query;
       let filter: any = {};
 
       if (tags) {
-        filter.tags = {
-          $in: Array.isArray(tags) ? tags : (tags as string).split(","),
-        };
+        filter.tags = { $in: Array.isArray(tags) ? tags : (tags as string).split(',') };
       }
 
       if (categories) {
-        filter.categories = {
-          $in: Array.isArray(categories)
-            ? categories
-            : (categories as string).split(","),
-        };
+        filter.categories = { $in: Array.isArray(categories) ? categories : (categories as string).split(',') };
       }
 
       if (author) {
@@ -101,22 +88,17 @@ export const getAllArticleController = catchAsyncError(
 
       if (searchText) {
         filter.$or = [
-          { title: { $regex: searchText, $options: "i" } },
-          { text: { $regex: searchText, $options: "i" } },
+          { title: { $regex: searchText, $options: 'i' } },
+          { text: { $regex: searchText, $options: 'i' } },
         ];
       }
 
-      let query = Article.find(filter)
+      const result = await article.find(filter)
         .populate("tags")
         .populate("categories")
         .populate("comments")
         .populate("author");
 
-      if (mostVisited) {
-        query = query.sort({ visit: -1 });
-      }
-
-      const result = await query;
       return res.status(200).json({
         success: true,
         msg: "Articles fetched successfully.",
@@ -133,47 +115,20 @@ export const getAllArticleController = catchAsyncError(
   }
 );
 
-export const getRecentBlogs = catchAsyncError(async (req, res) => {
-  const { tags, categories, limit } = req.query;
-  const limitNumber = Number(limit || "0");
-  let filter: any = {};
 
-  if (tags) {
-    filter.tags = {
-      $in: Array.isArray(tags) ? tags : (tags as string).split(","),
-    };
-  }
 
-  if (categories) {
-    filter.categories = {
-      $in: Array.isArray(categories)
-        ? categories
-        : (categories as string).split(","),
-    };
-  }
 
-  const result = Article.find(filter)
-    .sort({ createdAt: -1 })
-    .limit(limitNumber || 5);
-
-  res.status(200).json({
-    success: true,
-    msg: "Recent 5 Article fetched successfully.",
-    result,
-  });
-});
 
 export const getArticleByIdController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id;
-      const result = await Article.findById(id)
+      const result = await article
+        .findById(id)
         .populate("tags")
         .populate("categories")
         .populate("comments")
         .populate("author");
-
-      await Article.findByIdAndUpdate(result?._id, { $inc: { visit: 1 } });
 
       return res.status(200).json({
         success: true,
@@ -197,7 +152,7 @@ export const updateArticleByIdController = catchAsyncError(
       const id = req.params.id;
       const data = req.body;
 
-      const result = await Article.findByIdAndUpdate(id, data, {
+      const result = await article.findByIdAndUpdate(id, data, {
         new: true,
         upsert: true,
       });
@@ -226,7 +181,7 @@ export const deleteArticleByIdController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id;
-      const result = await Article.findByIdAndDelete(id);
+      const result = await article.findByIdAndDelete(id);
 
       return res.status(200).json({
         success: true,
