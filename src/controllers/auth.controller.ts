@@ -135,6 +135,58 @@ export const authSateController = catchAsyncError(async (req, res) => {
   res.json({ success: true, message: "User state get", data: user });
 });
 
+export const getAccessToken = async (req: Request, res: Response) => {
+  const token = req.headers["authorization"]?.split(" ")[1]; /// refresh token
+  if (!token) return res.sendStatus(401);
+
+  // asdfasfd. decode
+
+  const refreshSecret = process.env.JWT_REFRESH_SECRET as string;
+  try {
+    const refreshToken = await RefreshToken.findOne({
+      token,
+    });
+    if (!refreshToken) {
+      return res.status(401).json({ success: false, message: "Unauthotized" });
+    }
+    const today = new Date().getTime();
+
+    if (today > refreshToken.expiration_time) {
+      return res.status(401).json({ success: false, message: "Unauthotized" });
+    }
+
+    const decoded: any = jwt.verify(
+      refreshToken.token as string,
+      refreshSecret as string
+    );
+
+    const tokenUser = decoded.user;
+
+    // checking if the user is exist
+    const user = await People.findOne({ email: tokenUser.email });
+
+    if (!user) {
+      throw new ErrorHandler("This user is not found !", 404);
+    }
+
+    const jwtPayload = {
+      userId: user.id,
+      role: user.role,
+    };
+
+    const accessToken = createAcessToken(jwtPayload, "1h");
+    res.json({
+      success: true,
+      data: null,
+      message: "access token retive successfully",
+      token: accessToken,
+    });
+  } catch (error) {
+    res.status(401).json({ success: false, message: "unautorized access" });
+  }
+};
+
+// change password
 export const resetPassword = catchAsyncError(async (req: any, res, next) => {
   const { newPassword, oldPassword } = req.body;
 
