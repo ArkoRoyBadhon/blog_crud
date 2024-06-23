@@ -8,7 +8,7 @@ import RefreshToken from "../models/refreshToken.model";
 import bcrypt from "bcrypt";
 
 
-export const registerCustomerController = catchAsyncError(
+export const registerUserController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     const { email, name, password, home_phone, work_phone } = req.body;
     const errors = validationResult(req);

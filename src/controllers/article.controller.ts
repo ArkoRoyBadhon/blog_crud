@@ -116,9 +116,6 @@ export const getAllArticleController = catchAsyncError(
 );
 
 
-
-
-
 export const getArticleByIdController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
