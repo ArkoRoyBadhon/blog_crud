@@ -130,6 +130,11 @@ export const signinController = async (
   }
 };
 
+export const authSateController = catchAsyncError(async (req, res) => {
+  const user = req.user;
+  res.json({ success: true, message: "User state get", data: user });
+});
+
 export const resetPassword = catchAsyncError(async (req: any, res, next) => {
   const { newPassword, oldPassword } = req.body;
 
