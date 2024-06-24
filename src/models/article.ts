@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 
 const articleSchema = new mongoose.Schema(
   {
+    thumbnail: {
+      type: String,
+      required: true,
+    },
     title: {
       type: String,
       required: true,

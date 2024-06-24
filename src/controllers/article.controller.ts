@@ -17,7 +17,6 @@ export const createArticleController = catchAsyncError(
         });
       } else {
         const data = req.body;
-        console.log("dta", data);
 
         const result = await Article.create(data);
 
@@ -113,7 +112,7 @@ export const getAllArticleController = catchAsyncError(
         .populate("author");
 
       if (mostVisited) {
-        query = query.sort({ visit: -1 });
+        query = query.sort({ visit: -1 }).limit(5);
       }
 
       const result = await query;
