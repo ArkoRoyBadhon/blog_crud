@@ -152,6 +152,10 @@ export const getRecentBlogs = catchAsyncError(async (req, res) => {
   }
 
   const result = await Article.find(filter)
+    .populate("tags")
+    .populate("categories")
+    .populate("comments")
+    .populate("author", "-password")
     .sort({ createdAt: -1 })
     .limit(limitNumber || 5);
 

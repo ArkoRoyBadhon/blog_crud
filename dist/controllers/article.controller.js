@@ -140,6 +140,10 @@ exports.getRecentBlogs = (0, catchAsyncErrors_1.default)((req, res) => __awaiter
         };
     }
     const result = yield article_1.default.find(filter)
+        .populate("tags")
+        .populate("categories")
+        .populate("comments")
+        .populate("author", "-password")
         .sort({ createdAt: -1 })
         .limit(limitNumber || 5);
     res.status(200).json({
