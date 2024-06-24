@@ -18,6 +18,7 @@ const catchAsyncErrors_1 = __importDefault(require("../middlewares/catchAsyncErr
 const article_1 = __importDefault(require("../models/article"));
 const categories_1 = __importDefault(require("../models/categories"));
 const tags_1 = __importDefault(require("../models/tags"));
+const visitSchema_1 = __importDefault(require("../models/visitSchema"));
 exports.createArticleController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
@@ -155,6 +156,7 @@ exports.getRecentBlogs = (0, catchAsyncErrors_1.default)((req, res) => __awaiter
 exports.getArticleByIdController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const id = req.params.id;
+        const userId = req.query.userId;
         const result = yield article_1.default.findById(id)
             .populate({ path: "tags" })
             .populate({ path: "categories" })
@@ -169,7 +171,13 @@ exports.getArticleByIdController = (0, catchAsyncErrors_1.default)((req, res, ne
             path: "author",
             select: "-password",
         });
-        yield article_1.default.findByIdAndUpdate(result === null || result === void 0 ? void 0 : result._id, { $inc: { visit: 1 } });
+        if (userId) {
+            const isVisitedBefore = yield visitSchema_1.default.findOne({ userId, article: id });
+            if (!isVisitedBefore) {
+                yield visitSchema_1.default.create({ article: id, userId });
+                yield article_1.default.findByIdAndUpdate(result === null || result === void 0 ? void 0 : result._id, { $inc: { visit: 1 } });
+            }
+        }
         return res.status(200).json({
             success: true,
             msg: "Article fetched successfully.",

@@ -8,13 +8,16 @@ const express_1 = __importDefault(require("express"));
 const http_1 = __importDefault(require("http"));
 // import morgan from "morgan";
 const db_1 = __importDefault(require("./config/db"));
-const v1_1 = __importDefault(require("./routes/v1"));
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const error_1 = __importDefault(require("./middlewares/error"));
+const v1_1 = __importDefault(require("./routes/v1"));
 const app = (0, express_1.default)();
 // Apply CORS middleware
 app.use((0, cors_1.default)({
-    origin: "*"
+    origin: "*",
+    credentials: true,
 }));
+app.use((0, cookie_parser_1.default)());
 // app.use(morgan("dev"));
 // Connect to Database
 (0, db_1.default)();

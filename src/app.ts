@@ -3,18 +3,20 @@ import express, { Application, NextFunction, Request, Response } from "express";
 import http from "http";
 // import morgan from "morgan";
 import connectDB from "./config/db";
-
-import routes from "./routes/v1";
+import cookieParser from "cookie-parser"
 import errorMiddleware from "./middlewares/error";
+import routes from "./routes/v1";
 
 const app: Application = express();
 
 // Apply CORS middleware
 app.use(
   cors({
-    origin: "*"
+    origin: "*",
+    credentials: true,
   })
 );
+app.use(cookieParser());
 // app.use(morgan("dev"));
 
 // Connect to Database

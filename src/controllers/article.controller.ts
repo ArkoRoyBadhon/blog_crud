@@ -4,6 +4,7 @@ import catchAsyncError from "../middlewares/catchAsyncErrors";
 import Article from "../models/article";
 import Category from "../models/categories";
 import Tag from "../models/tags";
+import Visit from "../models/visitSchema";
 
 export const createArticleController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -170,23 +171,30 @@ export const getArticleByIdController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id;
+      const userId = req.query.userId;
+
       const result = await Article.findById(id)
-      .populate({ path: "tags" })
-      .populate({ path: "categories" })
-      .populate({
-        path: "comments",
-        populate: {
+        .populate({ path: "tags" })
+        .populate({ path: "categories" })
+        .populate({
+          path: "comments",
+          populate: {
+            path: "author",
+            select: "-password",
+          },
+        })
+        .populate({
           path: "author",
           select: "-password",
-        },
-      })
-      .populate({
-        path: "author",
-        select: "-password",
-      });
+        });
 
-      await Article.findByIdAndUpdate(result?._id, { $inc: { visit: 1 } });
-
+      if (userId) {
+        const isVisitedBefore = await Visit.findOne({ userId, article: id });
+        if (!isVisitedBefore) {
+          await Visit.create({ article: id, userId });
+          await Article.findByIdAndUpdate(result?._id, { $inc: { visit: 1 } });
+        }
+      }
       return res.status(200).json({
         success: true,
         msg: "Article fetched successfully.",
