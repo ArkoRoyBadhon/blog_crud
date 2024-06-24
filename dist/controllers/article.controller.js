@@ -103,7 +103,7 @@ exports.getAllArticleController = (0, catchAsyncErrors_1.default)((req, res, nex
             .populate("tags")
             .populate("categories")
             .populate("comments")
-            .populate("author");
+            .populate("author", "-password");
         if (mostVisited) {
             query = query.sort({ visit: -1 }).limit(5);
         }
@@ -139,7 +139,11 @@ exports.getRecentBlogs = (0, catchAsyncErrors_1.default)((req, res) => __awaiter
                 : categories.split(","),
         };
     }
-    const result = article_1.default.find(filter)
+    const result = yield article_1.default.find(filter)
+        .populate("tags")
+        .populate("categories")
+        .populate("comments")
+        .populate("author", "-password")
         .sort({ createdAt: -1 })
         .limit(limitNumber || 5);
     res.status(200).json({
@@ -152,10 +156,19 @@ exports.getArticleByIdController = (0, catchAsyncErrors_1.default)((req, res, ne
     try {
         const id = req.params.id;
         const result = yield article_1.default.findById(id)
-            .populate("tags")
-            .populate("categories")
-            .populate("comments")
-            .populate("author");
+            .populate({ path: "tags" })
+            .populate({ path: "categories" })
+            .populate({
+            path: "comments",
+            populate: {
+                path: "author",
+                select: "-password",
+            },
+        })
+            .populate({
+            path: "author",
+            select: "-password",
+        });
         yield article_1.default.findByIdAndUpdate(result === null || result === void 0 ? void 0 : result._id, { $inc: { visit: 1 } });
         return res.status(200).json({
             success: true,

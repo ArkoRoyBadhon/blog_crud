@@ -109,7 +109,7 @@ export const getAllArticleController = catchAsyncError(
         .populate("tags")
         .populate("categories")
         .populate("comments")
-        .populate("author");
+        .populate("author", "-password");
 
       if (mostVisited) {
         query = query.sort({ visit: -1 }).limit(5);
@@ -151,7 +151,11 @@ export const getRecentBlogs = catchAsyncError(async (req, res) => {
     };
   }
 
-  const result = Article.find(filter)
+  const result = await Article.find(filter)
+    .populate("tags")
+    .populate("categories")
+    .populate("comments")
+    .populate("author", "-password")
     .sort({ createdAt: -1 })
     .limit(limitNumber || 5);
 
@@ -167,10 +171,19 @@ export const getArticleByIdController = catchAsyncError(
     try {
       const id = req.params.id;
       const result = await Article.findById(id)
-        .populate("tags")
-        .populate("categories")
-        .populate("comments")
-        .populate("author");
+      .populate({ path: "tags" })
+      .populate({ path: "categories" })
+      .populate({
+        path: "comments",
+        populate: {
+          path: "author",
+          select: "-password",
+        },
+      })
+      .populate({
+        path: "author",
+        select: "-password",
+      });
 
       await Article.findByIdAndUpdate(result?._id, { $inc: { visit: 1 } });
 
