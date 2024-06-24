@@ -11,12 +11,13 @@ const categorySchema = new mongoose_1.default.Schema({
     },
     URL: {
         type: String,
-        required: true,
+        required: false,
     },
     articles: [
         {
             type: mongoose_1.default.Schema.Types.ObjectId,
             ref: "Article",
+            default: [],
         },
     ],
 }, {

@@ -20,22 +20,21 @@ const isAuthenticatedUser = (req, res, next) => __awaiter(void 0, void 0, void 0
     var _a;
     try {
         const getToken = req.header("Authorization");
-        console.log("token =====", getToken);
         if (!getToken)
             return res.status(400).json({ msg: "Invalid Authentication." });
         const token = getToken.split(" ")[1];
+        console.log(token);
         const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_ACCESS_SECRET);
-        console.log("=========", decoded);
         if (!decoded)
             return res.status(400).json({ msg: "Invalid Authentication." });
         const user = yield people_model_1.default.findOne({ _id: (_a = decoded === null || decoded === void 0 ? void 0 : decoded.user) === null || _a === void 0 ? void 0 : _a.userId }).select("-password");
         if (!user)
             return res.status(400).json({ msg: "User does not exist." });
-        console.log("user =======", user);
         req.user = user;
         next();
     }
     catch (err) {
+        console.log(err);
         return res.status(500).json({ msg: err.message });
     }
 });

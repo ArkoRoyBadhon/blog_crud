@@ -7,11 +7,11 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const commentSchema = new mongoose_1.default.Schema({
     name: {
         type: String,
-        required: true,
+        required: false,
     },
     URL: {
         type: String,
-        required: true,
+        required: false,
     },
     text: {
         type: String,

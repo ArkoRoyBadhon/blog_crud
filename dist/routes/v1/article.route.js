@@ -9,7 +9,8 @@ const validArticle_1 = require("../../helpers/validArticle");
 const auth_1 = require("../../middlewares/auth");
 const router = express_1.default.Router();
 // employee personal Data
-router.post("/a/create", validArticle_1.validateArticle, (0, auth_1.authorizeRoles)("author"), article_controller_1.createArticleController);
+// router.post("/a/create", validateArticle, authorizeRoles("author"), createArticleController);
+router.post("/a/create", article_controller_1.createArticleController);
 router.get("/a/get", article_controller_1.getAllArticleController);
 router.get("/a/g/recent", article_controller_1.getRecentBlogs);
 router.get("/a/get/:id", article_controller_1.getArticleByIdController);

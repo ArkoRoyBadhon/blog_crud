@@ -4,11 +4,16 @@ import {
   deleteCommentController,
 } from "../../controllers/comment.controller";
 import { validateArticle } from "../../helpers/validArticle";
-import { authorizeRoles } from "../../middlewares/auth";
+import { authorizeRoles, isAuthenticatedUser } from "../../middlewares/auth";
 const router = express.Router();
 
 // employee personal Data
-router.post("/c/create", validateArticle, createCommentController);
-router.delete("/c/delete/:id", validateArticle, authorizeRoles("admin"), deleteCommentController);
+router.post("/c/create", isAuthenticatedUser, createCommentController);
+router.delete(
+  "/c/delete/:id",
+  isAuthenticatedUser,
+  authorizeRoles("admin"),
+  deleteCommentController
+);
 
 export default router;

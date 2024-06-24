@@ -30,7 +30,6 @@ exports.createArticleController = (0, catchAsyncErrors_1.default)((req, res, nex
         }
         else {
             const data = req.body;
-            console.log("dta", data);
             const result = yield article_1.default.create(data);
             // console.log("dta", result);
             if (!result) {
@@ -106,7 +105,7 @@ exports.getAllArticleController = (0, catchAsyncErrors_1.default)((req, res, nex
             .populate("comments")
             .populate("author");
         if (mostVisited) {
-            query = query.sort({ visit: -1 });
+            query = query.sort({ visit: -1 }).limit(5);
         }
         const result = yield query;
         return res.status(200).json({
