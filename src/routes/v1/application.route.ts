@@ -1,13 +1,18 @@
 import express from "express";
-import { validateArticle } from "../../helpers/validArticle";
-import { authorizeRoles, isAuthenticatedUser } from "../../middlewares/auth";
 import {
   createApplicationController,
+  getAllRequest,
   updateUserRoleController,
 } from "../../controllers/application.controller";
+import { authorizeRoles, isAuthenticatedUser } from "../../middlewares/auth";
 const router = express.Router();
 
-// employee personal Data
+router.get(
+  "/a/get",
+  isAuthenticatedUser,
+  authorizeRoles("admin"),
+  getAllRequest
+);
 router.post(
   "/a/create",
   isAuthenticatedUser,
