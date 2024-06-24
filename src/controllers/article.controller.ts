@@ -17,7 +17,6 @@ export const createArticleController = catchAsyncError(
         });
       } else {
         const data = req.body;
-        console.log("dta", data);
 
         const result = await Article.create(data);
 
@@ -110,10 +109,10 @@ export const getAllArticleController = catchAsyncError(
         .populate("tags")
         .populate("categories")
         .populate("comments")
-        .populate("author");
+        .populate("author", "-password");
 
       if (mostVisited) {
-        query = query.sort({ visit: -1 });
+        query = query.sort({ visit: -1 }).limit(5);
       }
 
       const result = await query;
@@ -171,7 +170,7 @@ export const getArticleByIdController = catchAsyncError(
         .populate("tags")
         .populate("categories")
         .populate("comments")
-        .populate("author");
+        .populate("author", "-password");
 
       await Article.findByIdAndUpdate(result?._id, { $inc: { visit: 1 } });
 

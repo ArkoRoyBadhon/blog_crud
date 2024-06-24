@@ -12,12 +12,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteArticleByIdController = exports.updateArticleByIdController = exports.getArticleByIdController = exports.getAllArticleController = exports.createArticleController = void 0;
-const catchAsyncErrors_1 = __importDefault(require("../middlewares/catchAsyncErrors"));
+exports.deleteArticleByIdController = exports.updateArticleByIdController = exports.getArticleByIdController = exports.getRecentBlogs = exports.getAllArticleController = exports.createArticleController = void 0;
 const express_validator_1 = require("express-validator");
+const catchAsyncErrors_1 = __importDefault(require("../middlewares/catchAsyncErrors"));
 const article_1 = __importDefault(require("../models/article"));
-const tags_1 = __importDefault(require("../models/tags"));
 const categories_1 = __importDefault(require("../models/categories"));
+const tags_1 = __importDefault(require("../models/tags"));
 exports.createArticleController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
@@ -30,7 +30,6 @@ exports.createArticleController = (0, catchAsyncErrors_1.default)((req, res, nex
         }
         else {
             const data = req.body;
-            console.log("dta", data);
             const result = yield article_1.default.create(data);
             // console.log("dta", result);
             if (!result) {
@@ -68,13 +67,19 @@ exports.createArticleController = (0, catchAsyncErrors_1.default)((req, res, nex
 }));
 exports.getAllArticleController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { tags, categories, author, dateFrom, dateTo, searchText } = req.query;
+        const { tags, categories, author, dateFrom, dateTo, searchText, mostVisited, } = req.query;
         let filter = {};
         if (tags) {
-            filter.tags = { $in: Array.isArray(tags) ? tags : tags.split(',') };
+            filter.tags = {
+                $in: Array.isArray(tags) ? tags : tags.split(","),
+            };
         }
         if (categories) {
-            filter.categories = { $in: Array.isArray(categories) ? categories : categories.split(',') };
+            filter.categories = {
+                $in: Array.isArray(categories)
+                    ? categories
+                    : categories.split(","),
+            };
         }
         if (author) {
             filter.author = author;
@@ -90,15 +95,19 @@ exports.getAllArticleController = (0, catchAsyncErrors_1.default)((req, res, nex
         }
         if (searchText) {
             filter.$or = [
-                { title: { $regex: searchText, $options: 'i' } },
-                { text: { $regex: searchText, $options: 'i' } },
+                { title: { $regex: searchText, $options: "i" } },
+                { text: { $regex: searchText, $options: "i" } },
             ];
         }
-        const result = yield article_1.default.find(filter)
+        let query = article_1.default.find(filter)
             .populate("tags")
             .populate("categories")
             .populate("comments")
-            .populate("author");
+            .populate("author", "-password");
+        if (mostVisited) {
+            query = query.sort({ visit: -1 }).limit(5);
+        }
+        const result = yield query;
         return res.status(200).json({
             success: true,
             msg: "Articles fetched successfully.",
@@ -114,15 +123,40 @@ exports.getAllArticleController = (0, catchAsyncErrors_1.default)((req, res, nex
         });
     }
 }));
+exports.getRecentBlogs = (0, catchAsyncErrors_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { tags, categories, limit } = req.query;
+    const limitNumber = Number(limit || "0");
+    let filter = {};
+    if (tags) {
+        filter.tags = {
+            $in: Array.isArray(tags) ? tags : tags.split(","),
+        };
+    }
+    if (categories) {
+        filter.categories = {
+            $in: Array.isArray(categories)
+                ? categories
+                : categories.split(","),
+        };
+    }
+    const result = article_1.default.find(filter)
+        .sort({ createdAt: -1 })
+        .limit(limitNumber || 5);
+    res.status(200).json({
+        success: true,
+        msg: "Recent 5 Article fetched successfully.",
+        result,
+    });
+}));
 exports.getArticleByIdController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const id = req.params.id;
-        const result = yield article_1.default
-            .findById(id)
+        const result = yield article_1.default.findById(id)
             .populate("tags")
             .populate("categories")
             .populate("comments")
-            .populate("author");
+            .populate("author", "-password");
+        yield article_1.default.findByIdAndUpdate(result === null || result === void 0 ? void 0 : result._id, { $inc: { visit: 1 } });
         return res.status(200).json({
             success: true,
             msg: "Article fetched successfully.",
