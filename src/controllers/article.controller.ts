@@ -171,10 +171,19 @@ export const getArticleByIdController = catchAsyncError(
     try {
       const id = req.params.id;
       const result = await Article.findById(id)
-        .populate("tags")
-        .populate("categories")
-        .populate("comments")
-        .populate("author", "-password");
+      .populate({ path: "tags" })
+      .populate({ path: "categories" })
+      .populate({
+        path: "comments",
+        populate: {
+          path: "author",
+          select: "-password",
+        },
+      })
+      .populate({
+        path: "author",
+        select: "-password",
+      });
 
       await Article.findByIdAndUpdate(result?._id, { $inc: { visit: 1 } });
 
