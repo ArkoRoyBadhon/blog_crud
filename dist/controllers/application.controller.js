@@ -12,11 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateUserRoleController = exports.createApplicationController = void 0;
-const catchAsyncErrors_1 = __importDefault(require("../middlewares/catchAsyncErrors"));
+exports.getAllRequest = exports.updateUserRoleController = exports.createApplicationController = void 0;
 const express_validator_1 = require("express-validator");
-const people_model_1 = __importDefault(require("../models/people.model"));
+const catchAsyncErrors_1 = __importDefault(require("../middlewares/catchAsyncErrors"));
 const application_1 = __importDefault(require("../models/application"));
+const people_model_1 = __importDefault(require("../models/people.model"));
 const errorhandler_1 = __importDefault(require("../utils/errorhandler"));
 exports.createApplicationController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -30,11 +30,13 @@ exports.createApplicationController = (0, catchAsyncErrors_1.default)((req, res,
         }
         else {
             const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
-            // console.log("dta", userId);
-            const existApplication = yield application_1.default.find({ userId });
+            console.log("dta", userId);
+            const existApplication = yield application_1.default.findOne({ userId });
             if (existApplication) {
                 return res.status(422).json({
                     errors: "Already Applied",
+                    success: false,
+                    message: "Already aplplied",
                 });
             }
             const result = yield application_1.default.create({ userId });
@@ -60,17 +62,18 @@ exports.createApplicationController = (0, catchAsyncErrors_1.default)((req, res,
     }
 }));
 const updateUserRoleController = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const { userId } = req.params;
+    const { status, userId } = req.body;
     try {
-        const user = yield people_model_1.default.findByIdAndUpdate(userId, { role: "author", verified: true }, { new: true });
-        if (!user) {
-            throw new errorhandler_1.default("User not found", 404);
+        if (status === "accepted") {
+            const user = yield people_model_1.default.findByIdAndUpdate(userId, { role: "author", verified: true }, { new: true });
+            if (!user) {
+                throw new errorhandler_1.default("User not found", 404);
+            }
         }
-        yield application_1.default.findByIdAndDelete({ userId });
+        yield application_1.default.findOneAndUpdate({ userId }, { $set: { status } });
         res.json({
             success: true,
             message: "User role updated successfully",
-            user,
         });
     }
     catch (error) {
@@ -78,3 +81,16 @@ const updateUserRoleController = (req, res, next) => __awaiter(void 0, void 0, v
     }
 });
 exports.updateUserRoleController = updateUserRoleController;
+exports.getAllRequest = (0, catchAsyncErrors_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { status } = req.query;
+    const find = { status: "pending" };
+    if (status) {
+        find.status = status;
+    }
+    const result = yield application_1.default.find(find).populate("userId", "-password");
+    res.json({
+        success: true,
+        message: "successfully get all application",
+        data: result,
+    });
+}));

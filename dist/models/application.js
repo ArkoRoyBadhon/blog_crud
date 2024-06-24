@@ -8,6 +8,12 @@ const applicationSchema = new mongoose_1.default.Schema({
     userId: {
         type: mongoose_1.default.Types.ObjectId,
         required: true,
+        ref: "People",
+    },
+    status: {
+        type: String,
+        enum: ["accepted", "block", "pending"],
+        default: "pending",
     },
 }, {
     timestamps: true,
