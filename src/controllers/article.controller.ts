@@ -109,7 +109,7 @@ export const getAllArticleController = catchAsyncError(
         .populate("tags")
         .populate("categories")
         .populate("comments")
-        .populate("author");
+        .populate("author", "-password");
 
       if (mostVisited) {
         query = query.sort({ visit: -1 }).limit(5);
@@ -170,7 +170,7 @@ export const getArticleByIdController = catchAsyncError(
         .populate("tags")
         .populate("categories")
         .populate("comments")
-        .populate("author");
+        .populate("author", "-password");
 
       await Article.findByIdAndUpdate(result?._id, { $inc: { visit: 1 } });
 

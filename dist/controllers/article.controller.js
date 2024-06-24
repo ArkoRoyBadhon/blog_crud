@@ -103,7 +103,7 @@ exports.getAllArticleController = (0, catchAsyncErrors_1.default)((req, res, nex
             .populate("tags")
             .populate("categories")
             .populate("comments")
-            .populate("author");
+            .populate("author", "-password");
         if (mostVisited) {
             query = query.sort({ visit: -1 }).limit(5);
         }
@@ -155,7 +155,7 @@ exports.getArticleByIdController = (0, catchAsyncErrors_1.default)((req, res, ne
             .populate("tags")
             .populate("categories")
             .populate("comments")
-            .populate("author");
+            .populate("author", "-password");
         yield article_1.default.findByIdAndUpdate(result === null || result === void 0 ? void 0 : result._id, { $inc: { visit: 1 } });
         return res.status(200).json({
             success: true,
