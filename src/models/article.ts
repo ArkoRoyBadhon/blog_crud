@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const articleSchema = new mongoose.Schema(
   {
-    thumbnail: {
+    img: {
       type: String,
       required: true,
     },
