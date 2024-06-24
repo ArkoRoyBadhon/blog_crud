@@ -22,15 +22,10 @@ const isAuthenticatedUser = (req, res, next) => __awaiter(void 0, void 0, void 0
         const getToken = req.header("Authorization");
         if (!getToken)
             return res.status(400).json({ msg: "Invalid Authentication." });
-<<<<<<< HEAD
-        const token = getToken.split(" ")[1];
-        console.log(token);
-=======
         const token = getToken.split(" ")[1] || "";
         if (!token) {
             return res.status(400).json({ msg: "Invalid Authentication." });
         }
->>>>>>> 2b296cc1e3c4658e454014d569df7b52d00c46b9
         const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_ACCESS_SECRET);
         if (!decoded)
             return res.status(400).json({ msg: "Invalid Authentication." });
@@ -50,6 +45,7 @@ const authorizeRoles = (...roles) => {
     return (req, res, next) => {
         var _a, _b;
         console.log("role =======", roles);
+        console.log("role =======", req.user);
         if (!roles.includes((_a = req.user) === null || _a === void 0 ? void 0 : _a.role)) {
             return next(new errorhandler_1.default(`User type: ${(_b = req.user) === null || _b === void 0 ? void 0 : _b.role} is not allowed to access this resouce `, 403));
         }
