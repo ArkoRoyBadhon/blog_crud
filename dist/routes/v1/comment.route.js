@@ -8,6 +8,6 @@ const comment_controller_1 = require("../../controllers/comment.controller");
 const auth_1 = require("../../middlewares/auth");
 const router = express_1.default.Router();
 // employee personal Data
-router.post("/c/create", comment_controller_1.createCommentController);
-router.delete("/c/delete/:id", (0, auth_1.authorizeRoles)("admin"), comment_controller_1.deleteCommentController);
+router.post("/c/create", auth_1.isAuthenticatedUser, comment_controller_1.createCommentController);
+router.delete("/c/delete/:id", auth_1.isAuthenticatedUser, (0, auth_1.authorizeRoles)("admin"), comment_controller_1.deleteCommentController);
 exports.default = router;
