@@ -139,7 +139,7 @@ exports.getRecentBlogs = (0, catchAsyncErrors_1.default)((req, res) => __awaiter
                 : categories.split(","),
         };
     }
-    const result = article_1.default.find(filter)
+    const result = yield article_1.default.find(filter)
         .sort({ createdAt: -1 })
         .limit(limitNumber || 5);
     res.status(200).json({

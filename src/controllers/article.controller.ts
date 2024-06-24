@@ -151,7 +151,7 @@ export const getRecentBlogs = catchAsyncError(async (req, res) => {
     };
   }
 
-  const result = Article.find(filter)
+  const result = await Article.find(filter)
     .sort({ createdAt: -1 })
     .limit(limitNumber || 5);
 
