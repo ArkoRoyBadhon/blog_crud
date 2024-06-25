@@ -10,10 +10,7 @@ const app: Application = express();
 
 // cors options
 const corsOptions = {
-  origin: [
-    "http://localhost:3000",
-    "https://nextjs-blog-blond-ten-86.vercel.app",
-  ],
+  origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
