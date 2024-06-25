@@ -8,11 +8,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteArticleByIdController = exports.updateArticleByIdController = exports.getArticleByIdController = exports.getRecentBlogs = exports.getAllArticleController = exports.createArticleController = void 0;
+exports.deleteArticleByIdController = exports.updateArticleByIdController = exports.getArticleByIdController = exports.getArticleByUserIdController = exports.getRecentBlogs = exports.getAllArticleController = exports.createArticleController = void 0;
 const express_validator_1 = require("express-validator");
 const catchAsyncErrors_1 = __importDefault(require("../middlewares/catchAsyncErrors"));
 const article_1 = __importDefault(require("../models/article"));
@@ -20,7 +31,6 @@ const categories_1 = __importDefault(require("../models/categories"));
 const tags_1 = __importDefault(require("../models/tags"));
 const visitSchema_1 = __importDefault(require("../models/visitSchema"));
 exports.createArticleController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
     try {
         const errors = (0, express_validator_1.validationResult)(req);
         if (!errors.isEmpty()) {
@@ -30,23 +40,24 @@ exports.createArticleController = (0, catchAsyncErrors_1.default)((req, res, nex
             });
         }
         else {
-            const data = req.body;
+            const _a = req.body, { tag, category } = _a, restData = __rest(_a, ["tag", "category"]);
+            const data = Object.assign(Object.assign({}, restData), { tags: tag, categories: category });
+            console.log("Received data:", data);
             const result = yield article_1.default.create(data);
-            // console.log("dta", result);
             if (!result) {
                 return res.status(422).json({
                     message: "Not Valid",
                 });
             }
             if (result) {
-                (_a = data === null || data === void 0 ? void 0 : data.tags) === null || _a === void 0 ? void 0 : _a.map((tagId) => __awaiter(void 0, void 0, void 0, function* () {
+                tag === null || tag === void 0 ? void 0 : tag.map((tagId) => __awaiter(void 0, void 0, void 0, function* () {
                     yield tags_1.default.findByIdAndUpdate(tagId, {
                         $push: { articles: result._id },
                     });
                 }));
-                (_b = data === null || data === void 0 ? void 0 : data.categories) === null || _b === void 0 ? void 0 : _b.map((categoryId) => __awaiter(void 0, void 0, void 0, function* () {
+                category === null || category === void 0 ? void 0 : category.map((categoryId) => __awaiter(void 0, void 0, void 0, function* () {
                     yield categories_1.default.findByIdAndUpdate(categoryId, {
-                        $push: { categories: result._id },
+                        $push: { articles: result._id },
                     });
                 }));
             }
@@ -58,7 +69,7 @@ exports.createArticleController = (0, catchAsyncErrors_1.default)((req, res, nex
         }
     }
     catch (error) {
-        console.error(error);
+        console.error("Error creating article:", error);
         return res.status(500).json({
             success: false,
             msg: "Error creating article",
@@ -66,6 +77,53 @@ exports.createArticleController = (0, catchAsyncErrors_1.default)((req, res, nex
         });
     }
 }));
+// export const createArticleController = catchAsyncError(
+//   async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//       const errors = validationResult(req);
+//       if (!errors.isEmpty()) {
+//         const firstError = errors.array().map((error) => error.msg)[0];
+//         return res.status(422).json({
+//           errors: firstError,
+//         });
+//       } else {
+//         const data = req.body;
+//         console.log("daaaaaaaaaa", data);
+//         const result = await Article.create(data);
+//         // console.log("dta", result);
+//         if (!result) {
+//           return res.status(422).json({
+//             message: "Not Valid",
+//           });
+//         }
+//         if (result) {
+//           data?.tags?.map(async (tagId: string) => {
+//             await Tag.findByIdAndUpdate(tagId, {
+//               $push: { articles: result._id },
+//             });
+//           });
+//           data?.categories?.map(async (categoryId: string) => {
+//             await Category.findByIdAndUpdate(categoryId, {
+//               $push: { categories: result._id },
+//             });
+//           });
+//         }
+//         return res.status(200).json({
+//           success: true,
+//           msg: "Article created successfully.",
+//           result,
+//         });
+//       }
+//     } catch (error) {
+//       console.error(error);
+//       return res.status(500).json({
+//         success: false,
+//         msg: "Error creating article",
+//         error,
+//       });
+//     }
+//   }
+// );
 exports.getAllArticleController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { tags, categories, author, dateFrom, dateTo, searchText, mostVisited, page, limit = 10, } = req.query;
@@ -162,6 +220,32 @@ exports.getRecentBlogs = (0, catchAsyncErrors_1.default)((req, res) => __awaiter
         msg: "Recent 5 Article fetched successfully.",
         result,
     });
+}));
+exports.getArticleByUserIdController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _b;
+    try {
+        // const id = req.params.id;
+        const userId = (_b = req === null || req === void 0 ? void 0 : req.user) === null || _b === void 0 ? void 0 : _b._id;
+        console.log("authorr---", userId);
+        const result = yield article_1.default.find({ author: userId })
+            .populate("tags")
+            .populate("categories")
+            .populate("comments")
+            .populate("author", "-password");
+        return res.status(200).json({
+            success: true,
+            msg: "Article fetched successfully.",
+            result,
+        });
+    }
+    catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            msg: "Error Fetching article",
+            error,
+        });
+    }
 }));
 exports.getArticleByIdController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
