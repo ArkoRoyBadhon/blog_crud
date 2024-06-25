@@ -4,6 +4,7 @@ import {
   deleteArticleByIdController,
   getAllArticleController,
   getArticleByIdController,
+  getArticleByUserIdController,
   getRecentBlogs,
   // getRecentBlogs,
   updateArticleByIdController,
@@ -17,7 +18,8 @@ router.post("/a/create", isAuthenticatedUser, authorizeRoles("author","admin"), 
 router.get("/a/get", getAllArticleController);
 router.get("/a/g/recent", getRecentBlogs);
 router.get("/a/get/:id", getArticleByIdController);
-router.patch("/a/update/:id",  isAuthenticatedUser, authorizeRoles("author", "admin"), updateArticleByIdController);
+router.get("/a/getByuser",isAuthenticatedUser, getArticleByUserIdController);
+router.patch("/a/update/:id", isAuthenticatedUser, authorizeRoles("author", "admin"), updateArticleByIdController);
 router.delete("/a/delete/:id",  isAuthenticatedUser, authorizeRoles("author", "admin"), deleteArticleByIdController);
 
 export default router;
