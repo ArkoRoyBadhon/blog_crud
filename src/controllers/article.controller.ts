@@ -6,6 +6,7 @@ import Category from "../models/categories";
 import Tag from "../models/tags";
 import Visit from "../models/visitSchema";
 
+
 export const createArticleController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -17,25 +18,32 @@ export const createArticleController = catchAsyncError(
           errors: firstError,
         });
       } else {
-        const data = req.body;
+        const { tag, category, ...restData } = req.body;
+        const data = {
+          ...restData,
+          tags: tag,
+          categories: category,
+        };
+        console.log("Received data:", data);
 
         const result = await Article.create(data);
 
-        // console.log("dta", result);
         if (!result) {
           return res.status(422).json({
             message: "Not Valid",
           });
         }
+
         if (result) {
-          data?.tags?.map(async (tagId: string) => {
+          tag?.map(async (tagId: string) => {
             await Tag.findByIdAndUpdate(tagId, {
               $push: { articles: result._id },
             });
           });
-          data?.categories?.map(async (categoryId: string) => {
+
+          category?.map(async (categoryId: string) => {
             await Category.findByIdAndUpdate(categoryId, {
-              $push: { categories: result._id },
+              $push: { articles: result._id },
             });
           });
         }
@@ -47,7 +55,7 @@ export const createArticleController = catchAsyncError(
         });
       }
     } catch (error) {
-      console.error(error);
+      console.error("Error creating article:", error);
       return res.status(500).json({
         success: false,
         msg: "Error creating article",
@@ -56,6 +64,59 @@ export const createArticleController = catchAsyncError(
     }
   }
 );
+
+// export const createArticleController = catchAsyncError(
+//   async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//       const errors = validationResult(req);
+
+//       if (!errors.isEmpty()) {
+//         const firstError = errors.array().map((error) => error.msg)[0];
+//         return res.status(422).json({
+//           errors: firstError,
+//         });
+//       } else {
+//         const data = req.body;
+//         console.log("daaaaaaaaaa", data);
+        
+
+//         const result = await Article.create(data);
+
+//         // console.log("dta", result);
+//         if (!result) {
+//           return res.status(422).json({
+//             message: "Not Valid",
+//           });
+//         }
+//         if (result) {
+//           data?.tags?.map(async (tagId: string) => {
+//             await Tag.findByIdAndUpdate(tagId, {
+//               $push: { articles: result._id },
+//             });
+//           });
+//           data?.categories?.map(async (categoryId: string) => {
+//             await Category.findByIdAndUpdate(categoryId, {
+//               $push: { categories: result._id },
+//             });
+//           });
+//         }
+
+//         return res.status(200).json({
+//           success: true,
+//           msg: "Article created successfully.",
+//           result,
+//         });
+//       }
+//     } catch (error) {
+//       console.error(error);
+//       return res.status(500).json({
+//         success: false,
+//         msg: "Error creating article",
+//         error,
+//       });
+//     }
+//   }
+// );
 
 export const getAllArticleController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -180,6 +241,37 @@ export const getRecentBlogs = catchAsyncError(async (req, res) => {
   });
 });
 
+export const getArticleByUserIdController = catchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+
+      // const id = req.params.id;
+      const userId = req?.user?._id
+
+      console.log("authorr---", userId);
+      
+
+      const result = await Article.find({author: userId})
+        .populate("tags")
+        .populate("categories")
+        .populate("comments")
+        .populate("author", "-password");
+
+      return res.status(200).json({
+        success: true,
+        msg: "Article fetched successfully.",
+        result,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        msg: "Error Fetching article",
+        error,
+      });
+    }
+  }
+);
 export const getArticleByIdController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
