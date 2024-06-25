@@ -68,9 +68,14 @@ export const getAllArticleController = catchAsyncError(
         dateTo,
         searchText,
         mostVisited,
+        page,
+        limit = 10,
       } = req.query;
       let filter: any = {};
 
+      const pageInNumber = parseInt((page as string) || "0") || 1;
+      const limitInNumber = parseInt(limit as string);
+      const skip = pageInNumber * limitInNumber;
       if (tags) {
         filter.tags = {
           $in: Array.isArray(tags) ? tags : (tags as string).split(","),
@@ -113,7 +118,11 @@ export const getAllArticleController = catchAsyncError(
         .populate("author", "-password");
 
       if (mostVisited) {
-        query = query.sort({ visit: -1 }).limit(5);
+        query = query.sort({ visit: -1 }).limit(limitInNumber);
+      }
+
+      if (page) {
+        query = query.skip(skip).limit(limitInNumber);
       }
 
       const result = await query;

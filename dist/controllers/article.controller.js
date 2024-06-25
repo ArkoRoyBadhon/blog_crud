@@ -68,8 +68,11 @@ exports.createArticleController = (0, catchAsyncErrors_1.default)((req, res, nex
 }));
 exports.getAllArticleController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { tags, categories, author, dateFrom, dateTo, searchText, mostVisited, } = req.query;
+        const { tags, categories, author, dateFrom, dateTo, searchText, mostVisited, page, limit = 10, } = req.query;
         let filter = {};
+        const pageInNumber = parseInt(page || "0") || 1;
+        const limitInNumber = parseInt(limit);
+        const skip = pageInNumber * limitInNumber;
         if (tags) {
             filter.tags = {
                 $in: Array.isArray(tags) ? tags : tags.split(","),
@@ -106,7 +109,10 @@ exports.getAllArticleController = (0, catchAsyncErrors_1.default)((req, res, nex
             .populate("comments")
             .populate("author", "-password");
         if (mostVisited) {
-            query = query.sort({ visit: -1 }).limit(5);
+            query = query.sort({ visit: -1 }).limit(limitInNumber);
+        }
+        if (page) {
+            query = query.skip(skip).limit(limitInNumber);
         }
         const result = yield query;
         return res.status(200).json({
