@@ -114,11 +114,13 @@ exports.getAllArticleController = (0, catchAsyncErrors_1.default)((req, res, nex
         if (page) {
             query = query.skip(skip).limit(limitInNumber);
         }
+        const totalPage = yield article_1.default.countDocuments(filter);
         const result = yield query;
         return res.status(200).json({
             success: true,
             msg: "Articles fetched successfully.",
             result,
+            totalPage,
         });
     }
     catch (error) {

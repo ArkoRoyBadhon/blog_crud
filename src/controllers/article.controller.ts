@@ -124,12 +124,14 @@ export const getAllArticleController = catchAsyncError(
       if (page) {
         query = query.skip(skip).limit(limitInNumber);
       }
+      const totalPage = await Article.countDocuments(filter);
 
       const result = await query;
       return res.status(200).json({
         success: true,
         msg: "Articles fetched successfully.",
         result,
+        totalPage,
       });
     } catch (error) {
       console.error(error);
