@@ -68,7 +68,7 @@ export const getAllArticleController = catchAsyncError(
         dateTo,
         searchText,
         mostVisited,
-        page = 1,
+        page,
         limit = 10,
       } = req.query;
       let filter: any = {};
