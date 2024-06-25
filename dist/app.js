@@ -13,7 +13,10 @@ const v1_1 = __importDefault(require("./routes/v1"));
 const app = (0, express_1.default)();
 // Apply CORS middleware
 app.use((0, cors_1.default)({
-    origin: "*",
+    origin: [
+        "http://localhost:3000",
+        "https://nextjs-blog-blond-ten-86.vercel.app",
+    ],
     // credentials: true,
 }));
 // app.use(cookieParser());

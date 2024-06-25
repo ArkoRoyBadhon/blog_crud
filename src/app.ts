@@ -11,7 +11,10 @@ const app: Application = express();
 // Apply CORS middleware
 app.use(
   cors({
-    origin: "*",
+    origin: [
+      "http://localhost:3000",
+      "https://nextjs-blog-blond-ten-86.vercel.app",
+    ],
     // credentials: true,
   })
 );
