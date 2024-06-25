@@ -68,11 +68,11 @@ exports.createArticleController = (0, catchAsyncErrors_1.default)((req, res, nex
 }));
 exports.getAllArticleController = (0, catchAsyncErrors_1.default)((req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { tags, categories, author, dateFrom, dateTo, searchText, mostVisited, page, limit = 10, } = req.query;
+        const { tags, categories, author, dateFrom, dateTo, searchText, mostVisited, page = 1, limit = 10, } = req.query;
         let filter = {};
         const pageInNumber = parseInt(page || "0") || 1;
         const limitInNumber = parseInt(limit);
-        const skip = pageInNumber * limitInNumber;
+        const skip = (pageInNumber - 1) * limitInNumber;
         if (tags) {
             filter.tags = {
                 $in: Array.isArray(tags) ? tags : tags.split(","),

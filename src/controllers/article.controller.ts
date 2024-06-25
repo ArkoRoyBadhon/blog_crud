@@ -68,14 +68,14 @@ export const getAllArticleController = catchAsyncError(
         dateTo,
         searchText,
         mostVisited,
-        page,
+        page = 1,
         limit = 10,
       } = req.query;
       let filter: any = {};
 
       const pageInNumber = parseInt((page as string) || "0") || 1;
       const limitInNumber = parseInt(limit as string);
-      const skip = pageInNumber * limitInNumber;
+      const skip = (pageInNumber - 1) * limitInNumber;
       if (tags) {
         filter.tags = {
           $in: Array.isArray(tags) ? tags : (tags as string).split(","),
