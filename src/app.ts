@@ -12,7 +12,7 @@ const app: Application = express();
 // Apply CORS middleware
 app.use(
   cors({
-    origin: "*"
+    origin: ["http://localhost:3000"],
   })
 );
 // app.use(morgan("dev"));
