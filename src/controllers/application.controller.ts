@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import catchAsyncError from "../middlewares/catchAsyncErrors";
 import { validationResult } from "express-validator";
+import catchAsyncError from "../middlewares/catchAsyncErrors";
+import Application from "../models/application";
 import People from "../models/people.model";
-import application from "../models/application";
 import ErrorHandler from "../utils/errorhandler";
 
 export const createApplicationController = catchAsyncError(
@@ -17,17 +17,19 @@ export const createApplicationController = catchAsyncError(
         });
       } else {
         const userId = req.user?._id;
-        // console.log("dta", userId);
+        console.log("dta", userId);
 
-        const existApplication = await application.find({ userId });
+        const existApplication = await Application.findOne({ userId });
 
         if (existApplication) {
           return res.status(422).json({
             errors: "Already Applied",
+            success: false,
+            message: "Already aplplied",
           });
         }
 
-        const result = await application.create({ userId });
+        const result = await Application.create({ userId });
 
         if (!result) {
           return res.status(422).json({
@@ -57,27 +59,42 @@ export const updateUserRoleController = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { userId } = req.params;
+  const { status, userId } = req.body;
 
   try {
-    const user = await People.findByIdAndUpdate(
-      userId,
-      { role: "author", verified: true },
-      { new: true }
-    );
-
-    if (!user) {
-      throw new ErrorHandler("User not found", 404);
+    if (status === "accepted") {
+      const user = await People.findByIdAndUpdate(
+        userId,
+        { role: "author", verified: true },
+        { new: true }
+      );
+      if (!user) {
+        throw new ErrorHandler("User not found", 404);
+      }
     }
 
-    await application.findByIdAndDelete({ userId });
+    await Application.findOneAndUpdate({ userId }, { $set: { status } });
 
     res.json({
       success: true,
       message: "User role updated successfully",
-      user,
     });
   } catch (error) {
     next(error);
   }
 };
+
+export const getAllRequest = catchAsyncError(async (req, res) => {
+  const { status } = req.query;
+  const find: Record<string, unknown> = { status: "pending" };
+  if (status) {
+    find.status = status;
+  }
+
+  const result = await Application.find(find).populate("userId", "-password");
+  res.json({
+    success: true,
+    message: "successfully get all application",
+    data: result,
+  });
+});

@@ -12,6 +12,7 @@ router.post("/a/create", auth_1.isAuthenticatedUser, (0, auth_1.authorizeRoles)(
 router.get("/a/get", article_controller_1.getAllArticleController);
 router.get("/a/g/recent", article_controller_1.getRecentBlogs);
 router.get("/a/get/:id", article_controller_1.getArticleByIdController);
+router.get("/a/getByuser", auth_1.isAuthenticatedUser, article_controller_1.getArticleByUserIdController);
 router.patch("/a/update/:id", auth_1.isAuthenticatedUser, (0, auth_1.authorizeRoles)("author", "admin"), article_controller_1.updateArticleByIdController);
 router.delete("/a/delete/:id", auth_1.isAuthenticatedUser, (0, auth_1.authorizeRoles)("author", "admin"), article_controller_1.deleteArticleByIdController);
 exports.default = router;

@@ -3,9 +3,8 @@ import express, { Application, NextFunction, Request, Response } from "express";
 import http from "http";
 // import morgan from "morgan";
 import connectDB from "./config/db";
-
-import routes from "./routes/v1";
 import errorMiddleware from "./middlewares/error";
+import routes from "./routes/v1";
 
 const app: Application = express();
 

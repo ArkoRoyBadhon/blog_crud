@@ -4,6 +4,7 @@ import catchAsyncError from "../middlewares/catchAsyncErrors";
 import Article from "../models/article";
 import Category from "../models/categories";
 import Tag from "../models/tags";
+import Visit from "../models/visitSchema";
 
 
 export const createArticleController = catchAsyncError(
@@ -128,9 +129,14 @@ export const getAllArticleController = catchAsyncError(
         dateTo,
         searchText,
         mostVisited,
+        page,
+        limit = 10,
       } = req.query;
       let filter: any = {};
 
+      const pageInNumber = parseInt((page as string) || "0") || 1;
+      const limitInNumber = parseInt(limit as string);
+      const skip = (pageInNumber - 1) * limitInNumber;
       if (tags) {
         filter.tags = {
           $in: Array.isArray(tags) ? tags : (tags as string).split(","),
@@ -173,14 +179,22 @@ export const getAllArticleController = catchAsyncError(
         .populate("author", "-password");
 
       if (mostVisited) {
-        query = query.sort({ visit: -1 }).limit(5);
+        query = query.sort({ visit: -1 }).limit(limitInNumber);
       }
+
+      if (page) {
+        query = query.skip(skip).limit(limitInNumber);
+      }
+      const totalDoc = await Article.countDocuments(filter);
 
       const result = await query;
       return res.status(200).json({
         success: true,
         msg: "Articles fetched successfully.",
         result,
+        totalPage: Math.ceil(totalDoc / limitInNumber),
+        limit: limitInNumber,
+        page: pageInNumber,
       });
     } catch (error) {
       console.error(error);
@@ -262,23 +276,30 @@ export const getArticleByIdController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const id = req.params.id;
+      const userId = req.query.userId;
+
       const result = await Article.findById(id)
-      .populate({ path: "tags" })
-      .populate({ path: "categories" })
-      .populate({
-        path: "comments",
-        populate: {
+        .populate({ path: "tags" })
+        .populate({ path: "categories" })
+        .populate({
+          path: "comments",
+          populate: {
+            path: "author",
+            select: "-password",
+          },
+        })
+        .populate({
           path: "author",
           select: "-password",
-        },
-      })
-      .populate({
-        path: "author",
-        select: "-password",
-      });
+        });
 
-      await Article.findByIdAndUpdate(result?._id, { $inc: { visit: 1 } });
-
+      if (userId) {
+        const isVisitedBefore = await Visit.findOne({ userId, article: id });
+        if (!isVisitedBefore) {
+          await Visit.create({ article: id, userId });
+          await Article.findByIdAndUpdate(result?._id, { $inc: { visit: 1 } });
+        }
+      }
       return res.status(200).json({
         success: true,
         msg: "Article fetched successfully.",
