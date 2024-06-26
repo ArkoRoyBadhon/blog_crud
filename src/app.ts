@@ -8,17 +8,17 @@ import routes from "./routes/v1";
 
 const app: Application = express();
 
+// cors options
+const corsOptions = {
+  origin: [
+    "http://localhost:3000",
+    "https://nextjs-blog-blond-ten-86.vercel.app",
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
 // Apply CORS middleware
-app.use(
-  cors({
-    origin: [
-      "http://localhost:3000",
-      "https://nextjs-blog-blond-ten-86.vercel.app",
-    ],
-    // credentials: true,
-  })
-);
-// app.use(cookieParser());
+app.use(cors(corsOptions));
 // app.use(morgan("dev"));
 
 // Connect to Database
@@ -30,7 +30,7 @@ app.use(express.urlencoded({ extended: true }));
 const server = http.createServer(app);
 
 app.use("/api/v1/", routes);
-
+app.get("/test", (req, res) => res.send("hey tester"));
 // Middleware for Errors
 app.use(errorMiddleware);
 

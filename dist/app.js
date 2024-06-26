@@ -11,15 +11,17 @@ const db_1 = __importDefault(require("./config/db"));
 const error_1 = __importDefault(require("./middlewares/error"));
 const v1_1 = __importDefault(require("./routes/v1"));
 const app = (0, express_1.default)();
-// Apply CORS middleware
-app.use((0, cors_1.default)({
+// cors options
+const corsOptions = {
     origin: [
         "http://localhost:3000",
         "https://nextjs-blog-blond-ten-86.vercel.app",
     ],
-    // credentials: true,
-}));
-// app.use(cookieParser());
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+};
+// Apply CORS middleware
+app.use((0, cors_1.default)(corsOptions));
 // app.use(morgan("dev"));
 // Connect to Database
 (0, db_1.default)();
@@ -27,6 +29,7 @@ app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 const server = http_1.default.createServer(app);
 app.use("/api/v1/", v1_1.default);
+app.get("/test", (req, res) => res.send("hey tester"));
 // Middleware for Errors
 app.use(error_1.default);
 //handle not found

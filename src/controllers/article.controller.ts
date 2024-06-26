@@ -6,7 +6,6 @@ import Category from "../models/categories";
 import Tag from "../models/tags";
 import Visit from "../models/visitSchema";
 
-
 export const createArticleController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -78,7 +77,6 @@ export const createArticleController = catchAsyncError(
 //       } else {
 //         const data = req.body;
 //         console.log("daaaaaaaaaa", data);
-        
 
 //         const result = await Article.create(data);
 
@@ -244,14 +242,12 @@ export const getRecentBlogs = catchAsyncError(async (req, res) => {
 export const getArticleByUserIdController = catchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-
       // const id = req.params.id;
-      const userId = req?.user?._id
+      const userId = req?.user?._id;
 
       console.log("authorr---", userId);
-      
 
-      const result = await Article.find({author: userId})
+      const result = await Article.find({ author: userId })
         .populate("tags")
         .populate("categories")
         .populate("comments")
